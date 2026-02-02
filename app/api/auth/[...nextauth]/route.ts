@@ -103,6 +103,7 @@ export const authOptions = {
   }
 }
 
-const handler = (NextAuth as unknown as any)(authOptions) // eslint-disable-line @typescript-eslint/no-explicit-any
+// @ts-expect-error NextAuth v4 type limitation - NextAuth default export not properly typed
+const handler = NextAuth(authOptions)
 
 export { handler as GET, handler as POST }

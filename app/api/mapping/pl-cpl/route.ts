@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { type Session } from 'next-auth'
+import { type Prisma } from '@prisma/client'
 import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import { prisma } from '@/lib/prisma'
 import { getProgramStudiIdFromUser } from '@/lib/auth-helper'
@@ -87,7 +88,7 @@ export async function POST(request: NextRequest) {
       const { profil_lulusan_id, cpl_ids } = bulkCreateSchema.parse(body)
 
       // Use transaction to ensure data consistency
-      const result = await prisma.$transaction(async (tx) => {
+      const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
         // Delete existing mappings that are not in the new selection
         await tx.pL_CPL_MAPPING.deleteMany({
           where: {

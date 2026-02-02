@@ -4,7 +4,6 @@ import { type Session } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
-import { Prisma } from '@prisma/client'
 
 const bulkMappingSchema = z.object({
   cpl_id: z.string().min(1, 'CPL ID is required'),
@@ -56,7 +55,7 @@ export async function POST(request: NextRequest) {
         data: cpmk_ids.map(cpmk_id => ({
           cpl_id,
           cpmk_id,
-          kontribusi_persen: new Prisma.Decimal(100 / cpmk_ids.length)
+          kontribusi_persen: 100 / cpmk_ids.length
         }))
       })
     }

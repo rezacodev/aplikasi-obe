@@ -11,7 +11,8 @@ import {
   GraduationCap,
   LogOut,
   FileText,
-  Link
+  Link,
+  Network
 } from "lucide-react"
 
 interface SidebarProps {
@@ -54,6 +55,7 @@ export default function Sidebar({ className }: SidebarProps) {
         { name: "PL - Mata Kuliah", href: "/admin/mapping-pl-mk", icon: Link, roles: ["prodi"] },
         { name: "Bahan Kajian - Mata Kuliah", href: "/admin/mapping-bk-mk", icon: Link, roles: ["prodi"] },
         { name: "Kurikulum - Mata Kuliah", href: "/admin/mapping-kurikulum-mk", icon: Link, roles: ["prodi"] },
+        { name: "Visualisasi Mapping", href: "/admin/mapping-visualization", icon: Network, roles: ["prodi"] },
       ],
     },
   ]

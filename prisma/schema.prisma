@@ -1,0 +1,934 @@
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "library"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model PROFIL_LULUSAN {
+  id          String   @id @default(cuid())
+  kode_pl     String   @unique
+  nama_profil String
+  deskripsi   String?
+  profesi     String[]
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  // Program Studi relation
+  programStudiId String
+  programStudi   PROGRAM_STUDI @relation(fields: [programStudiId], references: [id])
+
+  pl_cpl_mappings PL_CPL_MAPPING[]
+  pl_mk_mappings  PL_MK_MAPPING[]
+
+  @@map("profil_lulusan")
+}
+
+model KURIKULUM {
+  id             String   @id @default(cuid())
+  kode_kurikulum String   @unique
+  nama_kurikulum String
+  tahun_akademik String
+  jurusan        String
+  jenjang        String
+  status_aktif   Boolean  @default(true)
+  deskripsi      String?
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  // Program Studi relation
+  programStudiId String
+  programStudi   PROGRAM_STUDI @relation(fields: [programStudiId], references: [id])
+
+  kurikulum_cpl_mappings KURIKULUM_CPL_MAPPING[]
+
+  @@map("kurikulum")
+}
+
+model CPL {
+  id                      String      @id @default(cuid())
+  kode_cpl                String      @unique
+  deskripsi               String
+  kategori                KategoriCPL
+  sumber                  SumberCPL
+  nilai_minimum_kelulusan Decimal     @default(2.75)
+  status_aktif            Boolean     @default(true)
+  created_at              DateTime    @default(now())
+  updated_at              DateTime    @updatedAt
+
+  // Program Studi relation
+  programStudiId String
+  programStudi   PROGRAM_STUDI @relation(fields: [programStudiId], references: [id])
+
+  capaian_cpl_mahasiswa  CAPAIAN_CPL_MAHASISWA[]
+  capaian_cpl_per_mk     CAPAIAN_CPL_PER_MK[]
+  cpl_bk_mappings        CPL_BK_MAPPING[]
+  cpl_mk_mappings        CPL_MK_MAPPING[]
+  cpmk_cpl_mappings      CPMK_CPL_MAPPING[]
+  log_perhitungan_cpl    LOG_PERHITUNGAN_CPL[]
+  notifikasi_cpl         NOTIFIKASI_CPL[]
+  pl_cpl_mappings        PL_CPL_MAPPING[]
+  kurikulum_cpl_mappings KURIKULUM_CPL_MAPPING[]
+
+  @@map("cpl")
+}
+
+model BAHAN_KAJIAN {
+  id                String              @id @default(cuid())
+  kode_bk           String              @unique
+  nama_bahan_kajian String
+  kategori          KategoriBahanKajian
+  bobot_min_sks     Int
+  bobot_max_sks     Int
+  deskripsi         String?
+  created_at        DateTime            @default(now())
+  updated_at        DateTime            @updatedAt
+
+  // Program Studi relation
+  programStudiId String
+  programStudi   PROGRAM_STUDI @relation(fields: [programStudiId], references: [id])
+
+  bk_mk_mappings  BK_MK_MAPPING[]
+  cpl_bk_mappings CPL_BK_MAPPING[]
+
+  @@map("bahan_kajian")
+}
+
+model MATA_KULIAH {
+  id           String          @id @default(cuid())
+  kode_mk      String          @unique
+  nama_mk      String
+  sks          Int
+  semester     Int
+  jenis        JenisMataKuliah
+  konsentrasi  Konsentrasi?
+  deskripsi    String?
+  status_aktif Boolean         @default(true)
+  created_at   DateTime        @default(now())
+  updated_at   DateTime        @updatedAt
+
+  // Program Studi relation
+  programStudiId String
+  programStudi   PROGRAM_STUDI @relation(fields: [programStudiId], references: [id])
+
+  bk_mk_mappings      BK_MK_MAPPING[]
+  capaian_cpl_per_mk  CAPAIAN_CPL_PER_MK[]
+  cpl_mk_mappings     CPL_MK_MAPPING[]
+  cpmk                CPMK[]
+  enrollment          ENROLLMENT[]
+  instrumen_penilaian INSTRUMEN_PENILAIAN[]
+  log_perhitungan_cpl LOG_PERHITUNGAN_CPL[]
+  metode_pembelajaran METODE_PEMBELAJARAN[]
+  pengampu_mk         PENGAMPU_MK[]
+  pl_mk_mappings      PL_MK_MAPPING[]
+  prasyarat_mk        PRASYARAT_MK[]        @relation("prasyarat")
+  prasyarat_mk_refs   PRASYARAT_MK[]        @relation("prasyarat_mk")
+
+  @@map("mata_kuliah")
+}
+
+model PRASYARAT_MK {
+  id              String         @id @default(cuid())
+  mk_id           String
+  prasyarat_mk_id String
+  jenis_prasyarat JenisPrasyarat
+  created_at      DateTime       @default(now())
+  mata_kuliah     MATA_KULIAH    @relation("prasyarat", fields: [mk_id], references: [id])
+  prasyarat_mk    MATA_KULIAH    @relation("prasyarat_mk", fields: [prasyarat_mk_id], references: [id])
+
+  @@unique([mk_id, prasyarat_mk_id])
+  @@map("prasyarat_mk")
+}
+
+model PL_CPL_MAPPING {
+  id                String         @id @default(cuid())
+  profil_lulusan_id String
+  cpl_id            String
+  created_at        DateTime       @default(now())
+  cpl               CPL            @relation(fields: [cpl_id], references: [id])
+  profil_lulusan    PROFIL_LULUSAN @relation(fields: [profil_lulusan_id], references: [id])
+
+  @@unique([profil_lulusan_id, cpl_id])
+  @@map("pl_cpl_mapping")
+}
+
+model KURIKULUM_CPL_MAPPING {
+  id           String    @id @default(cuid())
+  kurikulum_id String
+  cpl_id       String
+  created_at   DateTime  @default(now())
+  cpl          CPL       @relation(fields: [cpl_id], references: [id])
+  kurikulum    KURIKULUM @relation(fields: [kurikulum_id], references: [id])
+
+  @@unique([kurikulum_id, cpl_id])
+  @@map("kurikulum_cpl_mapping")
+}
+
+model CPL_BK_MAPPING {
+  id              String       @id @default(cuid())
+  cpl_id          String
+  bahan_kajian_id String
+  created_at      DateTime     @default(now())
+  bahan_kajian    BAHAN_KAJIAN @relation(fields: [bahan_kajian_id], references: [id])
+  cpl             CPL          @relation(fields: [cpl_id], references: [id])
+
+  @@unique([cpl_id, bahan_kajian_id])
+  @@map("cpl_bk_mapping")
+}
+
+model BK_MK_MAPPING {
+  id              String       @id @default(cuid())
+  bahan_kajian_id String
+  mata_kuliah_id  String
+  created_at      DateTime     @default(now())
+  bahan_kajian    BAHAN_KAJIAN @relation(fields: [bahan_kajian_id], references: [id])
+  mata_kuliah     MATA_KULIAH  @relation(fields: [mata_kuliah_id], references: [id])
+
+  @@unique([bahan_kajian_id, mata_kuliah_id])
+  @@map("bk_mk_mapping")
+}
+
+model CPL_MK_MAPPING {
+  id              String      @id @default(cuid())
+  cpl_id          String
+  mata_kuliah_id  String
+  status          StatusCPLMK
+  semester_target Int?
+  bobot_status    Decimal
+  created_at      DateTime    @default(now())
+  cpl             CPL         @relation(fields: [cpl_id], references: [id])
+  mata_kuliah     MATA_KULIAH @relation(fields: [mata_kuliah_id], references: [id])
+
+  @@unique([cpl_id, mata_kuliah_id])
+  @@map("cpl_mk_mapping")
+}
+
+model PL_MK_MAPPING {
+  id                String         @id @default(cuid())
+  profil_lulusan_id String
+  mata_kuliah_id    String
+  created_at        DateTime       @default(now())
+  mata_kuliah       MATA_KULIAH    @relation(fields: [mata_kuliah_id], references: [id])
+  profil_lulusan    PROFIL_LULUSAN @relation(fields: [profil_lulusan_id], references: [id])
+
+  @@unique([profil_lulusan_id, mata_kuliah_id])
+  @@map("pl_mk_mapping")
+}
+
+model CPMK {
+  id                String             @id @default(cuid())
+  mata_kuliah_id    String
+  kode_cpmk         String
+  deskripsi         String
+  bobot_persen      Decimal
+  urutan            Int
+  status_aktif      Boolean            @default(true)
+  created_at        DateTime           @default(now())
+  updated_at        DateTime           @updatedAt
+  mata_kuliah       MATA_KULIAH        @relation(fields: [mata_kuliah_id], references: [id])
+  cpmk_cpl_mappings CPMK_CPL_MAPPING[]
+  nilai_cpmk        NILAI_CPMK[]
+  sub_cpmk          SUB_CPMK[]
+
+  @@map("cpmk")
+}
+
+model CPMK_CPL_MAPPING {
+  id                String   @id @default(cuid())
+  cpmk_id           String
+  cpl_id            String
+  kontribusi_persen Decimal
+  created_at        DateTime @default(now())
+  cpl               CPL      @relation(fields: [cpl_id], references: [id])
+  cpmk              CPMK     @relation(fields: [cpmk_id], references: [id])
+
+  @@map("cpmk_cpl_mapping")
+}
+
+model SUB_CPMK {
+  id                         String                      @id @default(cuid())
+  cpmk_id                    String
+  kode_sub_cpmk              String
+  deskripsi                  String
+  bobot_persen               Decimal
+  pertemuan_ke               Int[]
+  urutan                     Int
+  created_at                 DateTime                    @default(now())
+  updated_at                 DateTime                    @updatedAt
+  instrumen_subcpmk_mappings INSTRUMEN_SUBCPMK_MAPPING[]
+  nilai_subcpmk              NILAI_SUBCPMK[]
+  rubrik_penilaian           RUBRIK_PENILAIAN[]
+  cpmk                       CPMK                        @relation(fields: [cpmk_id], references: [id])
+
+  @@map("sub_cpmk")
+}
+
+model INSTRUMEN_PENILAIAN {
+  id                         String                      @id @default(cuid())
+  mata_kuliah_id             String
+  semester_tahun             String
+  nama_instrumen             String
+  jenis_penilaian            JenisPenilaian
+  bobot_persen               Decimal
+  tanggal_pelaksanaan        DateTime?
+  nilai_maksimal             Int                         @default(100)
+  deskripsi                  String?
+  created_at                 DateTime                    @default(now())
+  updated_at                 DateTime                    @updatedAt
+  mata_kuliah                MATA_KULIAH                 @relation(fields: [mata_kuliah_id], references: [id])
+  instrumen_subcpmk_mappings INSTRUMEN_SUBCPMK_MAPPING[]
+  nilai_instrumen            NILAI_INSTRUMEN[]
+  rubrik_penilaian           RUBRIK_PENILAIAN[]
+
+  @@map("instrumen_penilaian")
+}
+
+model INSTRUMEN_SUBCPMK_MAPPING {
+  id                String              @id @default(cuid())
+  instrumen_id      String
+  sub_cpmk_id       String
+  bobot_soal_persen Decimal
+  nomor_soal        String?
+  created_at        DateTime            @default(now())
+  instrumen         INSTRUMEN_PENILAIAN @relation(fields: [instrumen_id], references: [id])
+  sub_cpmk          SUB_CPMK            @relation(fields: [sub_cpmk_id], references: [id])
+
+  @@unique([instrumen_id, sub_cpmk_id])
+  @@map("instrumen_subcpmk_mapping")
+}
+
+model RUBRIK_PENILAIAN {
+  id               String              @id @default(cuid())
+  instrumen_id     String
+  sub_cpmk_id      String
+  level_pencapaian LevelPencapaian
+  skor_numerik     Decimal
+  deskriptor       String
+  created_at       DateTime            @default(now())
+  instrumen        INSTRUMEN_PENILAIAN @relation(fields: [instrumen_id], references: [id])
+  sub_cpmk         SUB_CPMK            @relation(fields: [sub_cpmk_id], references: [id])
+
+  @@unique([instrumen_id, sub_cpmk_id, level_pencapaian])
+  @@map("rubrik_penilaian")
+}
+
+model MAHASISWA {
+  id                    String                  @id @default(cuid())
+  nim                   String                  @unique
+  nama_lengkap          String
+  email                 String                  @unique
+  angkatan              Int
+  semester_aktif        Int
+  konsentrasi           Konsentrasi?
+  status                StatusMahasiswa         @default(aktif)
+  ipk                   Decimal?
+  total_sks             Int?
+  tanggal_masuk         DateTime
+  tanggal_lulus         DateTime?
+  created_at            DateTime                @default(now())
+  updated_at            DateTime                @updatedAt
+  capaian_cpl_mahasiswa CAPAIAN_CPL_MAHASISWA[]
+  capaian_cpl_per_mk    CAPAIAN_CPL_PER_MK[]
+  enrollment            ENROLLMENT[]
+  log_perhitungan_cpl   LOG_PERHITUNGAN_CPL[]
+  notifikasi_cpl        NOTIFIKASI_CPL[]
+  profile               UserProfile?
+
+  @@map("mahasiswa")
+}
+
+model ENROLLMENT {
+  id                 String               @id @default(cuid())
+  mahasiswa_id       String
+  mata_kuliah_id     String
+  semester_tahun     String
+  dosen_pengampu_id  String
+  kelas              String?
+  status             StatusEnrollment     @default(aktif)
+  nilai_akhir        Decimal?
+  nilai_huruf        String?
+  grade_point        Decimal?
+  tanggal_daftar     DateTime             @default(now())
+  tanggal_finalisasi DateTime?
+  created_at         DateTime             @default(now())
+  updated_at         DateTime             @updatedAt
+  capaian_cpl_per_mk CAPAIAN_CPL_PER_MK[]
+  dosen              DOSEN                @relation(fields: [dosen_pengampu_id], references: [id])
+  mahasiswa          MAHASISWA            @relation(fields: [mahasiswa_id], references: [id])
+  mata_kuliah        MATA_KULIAH          @relation(fields: [mata_kuliah_id], references: [id])
+  nilai_cpmk         NILAI_CPMK[]
+  nilai_instrumen    NILAI_INSTRUMEN[]
+  nilai_subcpmk      NILAI_SUBCPMK[]
+
+  @@unique([mahasiswa_id, mata_kuliah_id, semester_tahun])
+  @@map("enrollment")
+}
+
+model NILAI_INSTRUMEN {
+  id            String              @id @default(cuid())
+  enrollment_id String
+  instrumen_id  String
+  nilai_angka   Decimal
+  nilai_huruf   String?
+  grade_point   Decimal?
+  catatan_dosen String?
+  tanggal_input DateTime            @default(now())
+  input_by      String
+  created_at    DateTime            @default(now())
+  updated_at    DateTime            @updatedAt
+  enrollment    ENROLLMENT          @relation(fields: [enrollment_id], references: [id])
+  dosen         DOSEN               @relation(fields: [input_by], references: [id])
+  instrumen     INSTRUMEN_PENILAIAN @relation(fields: [instrumen_id], references: [id])
+
+  @@unique([enrollment_id, instrumen_id])
+  @@map("nilai_instrumen")
+}
+
+model NILAI_SUBCPMK {
+  id                String           @id @default(cuid())
+  enrollment_id     String
+  sub_cpmk_id       String
+  nilai_kumulatif   Decimal
+  jumlah_instrumen  Int
+  status_pencapaian StatusPencapaian
+  last_calculated   DateTime         @default(now())
+  created_at        DateTime         @default(now())
+  updated_at        DateTime         @updatedAt
+  enrollment        ENROLLMENT       @relation(fields: [enrollment_id], references: [id])
+  sub_cpmk          SUB_CPMK         @relation(fields: [sub_cpmk_id], references: [id])
+
+  @@unique([enrollment_id, sub_cpmk_id])
+  @@map("nilai_subcpmk")
+}
+
+model NILAI_CPMK {
+  id                String           @id @default(cuid())
+  enrollment_id     String
+  cpmk_id           String
+  nilai_kumulatif   Decimal
+  status_pencapaian StatusPencapaian
+  last_calculated   DateTime         @default(now())
+  created_at        DateTime         @default(now())
+  updated_at        DateTime         @updatedAt
+  cpmk              CPMK             @relation(fields: [cpmk_id], references: [id])
+  enrollment        ENROLLMENT       @relation(fields: [enrollment_id], references: [id])
+
+  @@unique([enrollment_id, cpmk_id])
+  @@map("nilai_cpmk")
+}
+
+model CAPAIAN_CPL_PER_MK {
+  id               String      @id @default(cuid())
+  enrollment_id    String
+  mahasiswa_id     String
+  cpl_id           String
+  mata_kuliah_id   String
+  nilai_kontribusi Decimal
+  status_dalam_mk  StatusCPLMK
+  semester_tahun   String
+  sks_mk           Int
+  bobot_status     Decimal
+  last_calculated  DateTime    @default(now())
+  created_at       DateTime    @default(now())
+  updated_at       DateTime    @updatedAt
+  cpl              CPL         @relation(fields: [cpl_id], references: [id])
+  enrollment       ENROLLMENT  @relation(fields: [enrollment_id], references: [id])
+  mahasiswa        MAHASISWA   @relation(fields: [mahasiswa_id], references: [id])
+  mata_kuliah      MATA_KULIAH @relation(fields: [mata_kuliah_id], references: [id])
+
+  @@unique([enrollment_id, cpl_id])
+  @@map("capaian_cpl_per_mk")
+}
+
+model CAPAIAN_CPL_MAHASISWA {
+  id                       String               @id @default(cuid())
+  mahasiswa_id             String
+  cpl_id                   String
+  nilai_kumulatif          Decimal
+  jumlah_mk_berkontribusi  Int
+  total_sks_berkontribusi  Int
+  status_pencapaian        StatusCPLAchievement
+  is_memenuhi_standard     Boolean
+  semester_terakhir_update String?
+  last_calculated          DateTime             @default(now())
+  created_at               DateTime             @default(now())
+  updated_at               DateTime             @updatedAt
+  cpl                      CPL                  @relation(fields: [cpl_id], references: [id])
+  mahasiswa                MAHASISWA            @relation(fields: [mahasiswa_id], references: [id])
+
+  @@unique([mahasiswa_id, cpl_id])
+  @@map("capaian_cpl_mahasiswa")
+}
+
+model LOG_PERHITUNGAN_CPL {
+  id                 String       @id @default(cuid())
+  mahasiswa_id       String
+  cpl_id             String
+  nilai_sebelum      Decimal?
+  nilai_sesudah      Decimal
+  trigger_event      TriggerEvent
+  mata_kuliah_id     String?
+  detail_perhitungan Json?
+  calculated_by      String
+  created_at         DateTime     @default(now())
+  cpl                CPL          @relation(fields: [cpl_id], references: [id])
+  mahasiswa          MAHASISWA    @relation(fields: [mahasiswa_id], references: [id])
+  mata_kuliah        MATA_KULIAH? @relation(fields: [mata_kuliah_id], references: [id])
+
+  @@map("log_perhitungan_cpl")
+}
+
+model DOSEN {
+  id               String            @id @default(cuid())
+  nidn             String            @unique
+  nama_lengkap     String
+  email            String            @unique
+  bidang_keahlian  String[]
+  jabatan_akademik JabatanAkademik
+  status           StatusDosen       @default(aktif)
+  created_at       DateTime          @default(now())
+  updated_at       DateTime          @updatedAt
+  enrollment       ENROLLMENT[]
+  nilai_instrumen  NILAI_INSTRUMEN[]
+  pengampu_mk      PENGAMPU_MK[]
+  profile          UserProfile?
+
+  @@map("dosen")
+}
+
+model PENGAMPU_MK {
+  id             String        @id @default(cuid())
+  mata_kuliah_id String
+  dosen_id       String
+  semester_tahun String
+  kelas          String?
+  peran          PeranPengampu
+  created_at     DateTime      @default(now())
+  dosen          DOSEN         @relation(fields: [dosen_id], references: [id])
+  mata_kuliah    MATA_KULIAH   @relation(fields: [mata_kuliah_id], references: [id])
+
+  @@unique([mata_kuliah_id, dosen_id, semester_tahun, kelas])
+  @@map("pengampu_mk")
+}
+
+model METODE_PEMBELAJARAN {
+  id             String             @id @default(cuid())
+  mata_kuliah_id String
+  metode         MetodePembelajaran
+  modus          ModusPembelajaran
+  bentuk         BentukPembelajaran
+  created_at     DateTime           @default(now())
+  mata_kuliah    MATA_KULIAH        @relation(fields: [mata_kuliah_id], references: [id])
+
+  @@unique([mata_kuliah_id, metode])
+  @@map("metode_pembelajaran")
+}
+
+model STANDARD_PENILAIAN {
+  id            String       @id @default(cuid())
+  nama_standard String
+  tipe          TipeStandard
+  rules         Json
+  status_aktif  Boolean      @default(true)
+  created_at    DateTime     @default(now())
+  updated_at    DateTime     @updatedAt
+
+  @@map("standard_penilaian")
+}
+
+model SEMESTER_AKADEMIK {
+  id              String         @id @default(cuid())
+  kode_semester   String         @unique
+  nama_semester   String
+  tahun_akademik  String
+  jenis           JenisSemester
+  tanggal_mulai   DateTime
+  tanggal_selesai DateTime
+  status          StatusSemester @default(draft)
+  created_at      DateTime       @default(now())
+  updated_at      DateTime       @updatedAt
+
+  @@map("semester_akademik")
+}
+
+model NOTIFIKASI_CPL {
+  id           String          @id @default(cuid())
+  mahasiswa_id String
+  cpl_id       String?
+  jenis        JenisNotifikasi
+  judul        String
+  pesan        String
+  data_terkait Json?
+  is_read      Boolean         @default(false)
+  created_at   DateTime        @default(now())
+  updated_at   DateTime        @updatedAt
+  cpl          CPL?            @relation(fields: [cpl_id], references: [id])
+  mahasiswa    MAHASISWA       @relation(fields: [mahasiswa_id], references: [id])
+
+  @@map("notifikasi_cpl")
+}
+
+// ==========================================
+// AUTHENTICATION & AUTHORIZATION MODELS
+// ==========================================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String?
+  isActive      Boolean   @default(true)
+  emailVerified DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Program Studi relation
+  programStudiId String?
+  programStudi   PROGRAM_STUDI? @relation(fields: [programStudiId], references: [id])
+
+  // Auth relations
+  accounts Account[]
+  sessions Session[]
+
+  // Profile relations
+  profile UserProfile?
+  roles   UserRole[]
+
+  // Audit
+  createdBy String?
+  updatedBy String?
+
+  @@map("user")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("account")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("session")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_token")
+}
+
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  isSystem    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  users       UserRole[]
+  permissions RolePermission[]
+
+  @@map("role")
+}
+
+model Permission {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  resource    String
+  action      String
+  description String?
+  createdAt   DateTime @default(now())
+
+  // Relations
+  roles RolePermission[]
+
+  @@unique([resource, action])
+  @@map("permission")
+}
+
+model UserRole {
+  id     String @id @default(cuid())
+  userId String
+  roleId String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId])
+  @@map("user_role")
+}
+
+model RolePermission {
+  id           String @id @default(cuid())
+  roleId       String
+  permissionId String
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@map("role_permission")
+}
+
+model UserProfile {
+  id     String      @id @default(cuid())
+  userId String      @unique
+  type   ProfileType
+
+  // Common fields
+  fullName String
+  avatar   String?
+
+  // Student specific
+  nim         String?      @unique
+  angkatan    Int?
+  konsentrasi Konsentrasi?
+
+  // Lecturer specific
+  nidn             String?          @unique
+  expertise        String[]
+  academicPosition JabatanAkademik?
+
+  // Status
+  status    ProfileStatus @default(aktif)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Relations to domain models
+  dosen     DOSEN?     @relation(fields: [nidn], references: [nidn])
+  mahasiswa MAHASISWA? @relation(fields: [nim], references: [nim])
+
+  @@map("user_profile")
+}
+
+model PROGRAM_STUDI {
+  id                 String   @id @default(cuid())
+  kode_program_studi String   @unique
+  nama_program_studi String
+  jenjang            String
+  fakultas           String
+  status_aktif       Boolean  @default(true)
+  deskripsi          String?
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
+
+  // Relations
+  users          User[]
+  kurikulum      KURIKULUM[]
+  profil_lulusan PROFIL_LULUSAN[]
+  cpl            CPL[]
+  bahan_kajian   BAHAN_KAJIAN[]
+  mata_kuliah    MATA_KULIAH[]
+
+  @@map("program_studi")
+}
+
+enum KategoriCPL {
+  sikap
+  pengetahuan
+  keterampilan_umum
+  keterampilan_khusus
+}
+
+enum SumberCPL {
+  KKNI
+  SN_DIKTI
+  APTIKOM
+  IABEE
+  CC2020
+}
+
+enum KategoriBahanKajian {
+  wajib_informatika
+  tambahan
+  wajib_sn_dikti
+  wajib_umum
+}
+
+enum JenisMataKuliah {
+  wajib
+  pilihan
+}
+
+enum Konsentrasi {
+  umum
+  kecerdasan_buatan
+  multimedia
+}
+
+enum JenisPrasyarat {
+  wajib
+  atau
+  minimal_sks
+}
+
+enum StatusCPLMK {
+  I
+  R
+  M
+  A
+}
+
+enum JenisPenilaian {
+  tes_tulis
+  tes_lisan
+  unjuk_kerja
+  portofolio
+  observasi
+  penugasan
+  penilaian_diri
+}
+
+enum LevelPencapaian {
+  sangat_baik
+  baik
+  cukup
+  kurang
+}
+
+enum StatusMahasiswa {
+  aktif
+  cuti
+  lulus
+  DO
+  mengundurkan_diri
+}
+
+enum StatusEnrollment {
+  aktif
+  lulus
+  tidak_lulus
+  mengulang
+  batal
+}
+
+enum StatusPencapaian {
+  sangat_baik
+  baik
+  cukup
+  kurang
+}
+
+enum StatusCPLAchievement {
+  belum_dimulai
+  introduce
+  reinforce
+  master
+  assessed
+}
+
+enum TriggerEvent {
+  nilai_baru
+  finalisasi_mk
+  recalculation
+  manual
+}
+
+enum JabatanAkademik {
+  asisten_ahli
+  lektor
+  lektor_kepala
+  profesor
+}
+
+enum StatusDosen {
+  aktif
+  tidak_aktif
+  pensiun
+}
+
+enum PeranPengampu {
+  koordinator
+  pengampu
+  asisten
+}
+
+enum MetodePembelajaran {
+  diskusi_kelompok
+  simulasi
+  studi_kasus
+  kolaboratif
+  kooperatif
+  project_based
+  problem_based
+}
+
+enum ModusPembelajaran {
+  synchronous
+  asynchronous
+  hybrid
+}
+
+enum BentukPembelajaran {
+  kuliah
+  seminar
+  praktikum
+  praktik_lapangan
+  penelitian
+  perancangan
+}
+
+enum TipeStandard {
+  grade_to_gpa
+  score_to_grade
+  cpl_threshold
+}
+
+enum JenisSemester {
+  gasal
+  genap
+  pendek
+}
+
+enum StatusSemester {
+  draft
+  aktif
+  selesai
+}
+
+enum JenisNotifikasi {
+  cpl_rendah
+  target_tercapai
+  nilai_baru
+  rekomendasi
+}
+
+enum ProfileType {
+  student
+  lecturer
+  admin
+}
+
+enum ProfileStatus {
+  aktif
+  nonaktif
+  alumni
+  pensiun
+}

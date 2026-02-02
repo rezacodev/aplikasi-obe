@@ -20,27 +20,26 @@ interface CPL {
   kategori: string
 }
 
-interface MataKuliah {
+interface BahanKajian {
   id: string
-  kode_mk: string
-  nama_mk: string
-  sks: number
-  semester: number
+  kode_bk: string
+  nama_bahan_kajian: string
+  kategori: string
 }
 
-export default function MappingCPLMKPage() {
+export default function MappingCPLBKPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const [cpls, setCpls] = useState<CPL[]>([])
-  const [mataKuliah, setMataKuliah] = useState<MataKuliah[]>([])
+  const [bahanKajian, setBahanKajian] = useState<BahanKajian[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedCPL, setSelectedCPL] = useState<string>('')
-  const [selectedMKIds, setSelectedMKIds] = useState<string[]>([])
+  const [selectedBKIds, setSelectedBKIds] = useState<string[]>([])
   const [searchQuery, setSearchQuery] = useState<string>('')
 
-  const filteredMataKuliah = mataKuliah.filter(mk =>
-    mk.nama_mk.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    mk.kode_mk.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredBahanKajian = bahanKajian.filter(bk =>
+    bk.kode_bk.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    bk.nama_bahan_kajian.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   const isAuthorizedUser = (session: unknown): session is Session => {
@@ -56,7 +55,7 @@ export default function MappingCPLMKPage() {
     }
 
     fetchCPLs()
-    fetchMataKuliah()
+    fetchBahanKajian()
   }, [status, session, router])
 
   const fetchCPLs = async () => {
@@ -71,15 +70,15 @@ export default function MappingCPLMKPage() {
     }
   }
 
-  const fetchMataKuliah = async () => {
+  const fetchBahanKajian = async () => {
     try {
-      const response = await fetch('/api/mata-kuliah')
+      const response = await fetch('/api/bahan-kajian')
       if (response.ok) {
         const data = await response.json()
-        setMataKuliah(data)
+        setBahanKajian(data)
       }
     } catch (error) {
-      console.error('Error fetching mata kuliah:', error)
+      console.error('Error fetching Bahan Kajian:', error)
     } finally {
       setLoading(false)
     }
@@ -87,26 +86,26 @@ export default function MappingCPLMKPage() {
 
   const handleSelectCPL = async (cplId: string) => {
     setSelectedCPL(cplId)
-    setSelectedMKIds([])
+    setSelectedBKIds([])
 
     // Fetch existing mappings for this CPL
     try {
-      const response = await fetch(`/api/mapping/cpl-mk?cpl_id=${cplId}`)
+      const response = await fetch(`/api/mapping/cpl-bk?cpl_id=${cplId}`)
       if (response.ok) {
-        const existingMappings = await response.json() as Array<{ mata_kuliah_id: string }>
-        const existingMKIds = [...new Set(existingMappings.map((mapping) => mapping.mata_kuliah_id))]
-        setSelectedMKIds(existingMKIds)
+        const existingMappings = await response.json() as Array<{ bahan_kajian_id: string }>
+        const existingBKIds = [...new Set(existingMappings.map((mapping) => mapping.bahan_kajian_id))]
+        setSelectedBKIds(existingBKIds)
       }
     } catch (error) {
       console.error('Error fetching existing mappings:', error)
     }
   }
 
-  const handleMKToggle = (mkId: string) => {
-    setSelectedMKIds(prev => {
-      const newIds = prev.includes(mkId)
-        ? prev.filter(id => id !== mkId)
-        : [...prev, mkId]
+  const handleBKToggle = (bkId: string) => {
+    setSelectedBKIds(prev => {
+      const newIds = prev.includes(bkId)
+        ? prev.filter(id => id !== bkId)
+        : [...prev, bkId]
       // Remove duplicates just in case
       return [...new Set(newIds)]
     })
@@ -119,24 +118,20 @@ export default function MappingCPLMKPage() {
     }
 
     try {
-      const response = await fetch('/api/mapping/cpl-mk', {
+      const response = await fetch('/api/mapping/cpl-bk', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           cpl_id: selectedCPL,
-          mata_kuliah_mappings: selectedMKIds.map(mkId => ({
-            mata_kuliah_id: mkId,
-            status: 'I' as const,
-            bobot_status: 100
-          })),
+          bahan_kajian_ids: selectedBKIds,
         }),
       })
 
       if (response.ok) {
         setSelectedCPL('')
-        setSelectedMKIds([])
+        setSelectedBKIds([])
         toast.success('Mapping berhasil disimpan')
       } else {
         const error = await response.json()
@@ -150,7 +145,7 @@ export default function MappingCPLMKPage() {
 
   const handleCancel = () => {
     setSelectedCPL('')
-    setSelectedMKIds([])
+    setSelectedBKIds([])
   }
 
   if (loading) {
@@ -168,9 +163,9 @@ export default function MappingCPLMKPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Mapping CPL - Mata Kuliah</h1>
+            <h1 className="text-3xl font-bold">Mapping CPL - Bahan Kajian</h1>
             <p className="text-muted-foreground">
-              Kelola mapping antara Capaian Pembelajaran Lulusan (CPL) dan Mata Kuliah
+              Kelola mapping antara Capaian Pembelajaran Lulusan (CPL) dan Bahan Kajian
             </p>
           </div>
         </div>
@@ -215,7 +210,7 @@ export default function MappingCPLMKPage() {
             </CardContent>
           </Card>
 
-          {/* Mata Kuliah Selection */}
+          {/* Bahan Kajian Selection */}
           <Card className="lg:col-span-2">
             {selectedCPL ? (
               <>
@@ -248,33 +243,33 @@ export default function MappingCPLMKPage() {
                   </CardContent>
                 </Card>
 
-                {/* Mata Kuliah Selection */}
+                {/* Bahan Kajian Selection */}
                 <CardHeader>
-                  <CardTitle>Mata Kuliah</CardTitle>
+                  <CardTitle>Bahan Kajian</CardTitle>
                   <p className="text-sm text-muted-foreground">
-                    Centang Mata Kuliah yang akan dipetakan ke CPL yang dipilih
+                    Centang Bahan Kajian yang diperlukan untuk mencapai CPL yang dipilih
                   </p>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
                     <div className="flex items-center space-x-2">
                       <Input
-                        placeholder="Cari mata kuliah..."
+                        placeholder="Cari bahan kajian..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="max-w-sm"
                       />
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
-                      {filteredMataKuliah.map((mk) => (
-                        <div key={mk.id} className="flex items-center space-x-2 p-1.5 border rounded mb-2">
+                      {filteredBahanKajian.map((bk) => (
+                        <div key={bk.id} className="flex items-center space-x-2 p-1.5 border rounded mb-2">
                           <Checkbox
-                            id={`mk-${mk.id}`}
-                            checked={selectedMKIds.includes(mk.id)}
-                            onCheckedChange={() => handleMKToggle(mk.id)}
+                            id={`bk-${bk.id}`}
+                            checked={selectedBKIds.includes(bk.id)}
+                            onCheckedChange={() => handleBKToggle(bk.id)}
                           />
-                          <Label htmlFor={`mk-${mk.id}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                            {mk.kode_mk} - {mk.nama_mk}
+                          <Label htmlFor={`bk-${bk.id}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                            {bk.kode_bk} - {bk.nama_bahan_kajian}
                           </Label>
                         </div>
                       ))}
@@ -296,7 +291,7 @@ export default function MappingCPLMKPage() {
                   <Settings className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
                   <h3 className="text-lg font-medium">Pilih CPL</h3>
                   <p className="text-sm text-muted-foreground">
-                    Klik pada CPL di panel kiri untuk mulai mengkonfigurasi pemetaan Mata Kuliah
+                    Klik pada CPL di panel kiri untuk mulai mengkonfigurasi pemetaan Bahan Kajian
                   </p>
                 </div>
               </CardContent>

@@ -50,6 +50,10 @@ export default function Sidebar({ className }: SidebarProps) {
         { name: "CPL - CPMK", href: "/admin/mapping-cpl-cpmk", icon: Link, roles: ["prodi"] },
         { name: "Kurikulum - CPL", href: "/admin/mapping-kurikulum-cpl", icon: Link, roles: ["prodi"] },
         { name: "CPL - Mata Kuliah", href: "/admin/mapping-cpl-mk", icon: Link, roles: ["prodi"] },
+        { name: "CPL - Bahan Kajian", href: "/admin/mapping-cpl-bk", icon: Link, roles: ["prodi"] },
+        { name: "PL - Mata Kuliah", href: "/admin/mapping-pl-mk", icon: Link, roles: ["prodi"] },
+        { name: "Bahan Kajian - Mata Kuliah", href: "/admin/mapping-bk-mk", icon: Link, roles: ["prodi"] },
+        { name: "Kurikulum - Mata Kuliah", href: "/admin/mapping-kurikulum-mk", icon: Link, roles: ["prodi"] },
       ],
     },
   ]

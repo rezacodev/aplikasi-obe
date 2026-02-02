@@ -53,6 +53,8 @@ export default withAuth(
             '/admin/mapping-cpl-cpmk',
             '/admin/mapping-kurikulum-cpl',
             '/admin/mapping-cpl-mk',
+            '/admin/mapping-cpl-bk',
+            '/admin/mapping-pl-mk',
             '/admin/profil-lulusan',
             '/admin/bahan-kajian'
           ]
@@ -108,6 +110,8 @@ export default withAuth(
             '/api/admin/mapping-cpl-cpmk',
             '/api/admin/mapping-kurikulum-cpl',
             '/api/admin/mapping-cpl-mk',
+            '/api/admin/mapping-cpl-bk',
+            '/api/admin/mapping-pl-mk',
             '/api/admin/profil-lulusan',
             '/api/admin/bahan-kajian'
           ]

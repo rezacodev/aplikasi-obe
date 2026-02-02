@@ -43,6 +43,7 @@ model KURIKULUM {
   programStudi   PROGRAM_STUDI @relation(fields: [programStudiId], references: [id])
 
   kurikulum_cpl_mappings KURIKULUM_CPL_MAPPING[]
+  kurikulum_mk_mappings  KURIKULUM_MK_MAPPING[]
 
   @@map("kurikulum")
 }
@@ -123,6 +124,7 @@ model MATA_KULIAH {
   metode_pembelajaran METODE_PEMBELAJARAN[]
   pengampu_mk         PENGAMPU_MK[]
   pl_mk_mappings      PL_MK_MAPPING[]
+  kurikulum_mk_mappings KURIKULUM_MK_MAPPING[]
   prasyarat_mk        PRASYARAT_MK[]        @relation("prasyarat")
   prasyarat_mk_refs   PRASYARAT_MK[]        @relation("prasyarat_mk")
 
@@ -215,6 +217,18 @@ model PL_MK_MAPPING {
 
   @@unique([profil_lulusan_id, mata_kuliah_id])
   @@map("pl_mk_mapping")
+}
+
+model KURIKULUM_MK_MAPPING {
+  id             String      @id @default(cuid())
+  kurikulum_id   String
+  mata_kuliah_id String
+  created_at     DateTime    @default(now())
+  kurikulum      KURIKULUM   @relation(fields: [kurikulum_id], references: [id])
+  mata_kuliah    MATA_KULIAH @relation(fields: [mata_kuliah_id], references: [id])
+
+  @@unique([kurikulum_id, mata_kuliah_id])
+  @@map("kurikulum_mk_mapping")
 }
 
 model CPMK {

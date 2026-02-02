@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Input } from '@/components/ui/input'
 import DashboardLayout from '@/components/DashboardLayout'
 import { Settings } from 'lucide-react'
 import { toast } from 'sonner'
@@ -33,6 +34,12 @@ export default function MappingCPLCpmkPage() {
   const [loading, setLoading] = useState(true)
   const [selectedCPL, setSelectedCPL] = useState<string>('')
   const [selectedCPMKs, setSelectedCPMKs] = useState<string[]>([])
+  const [searchQuery, setSearchQuery] = useState<string>('')
+
+  const filteredCPMKs = cpmks.filter(cpmk =>
+    cpmk.kode_cpmk.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    cpmk.deskripsi.toLowerCase().includes(searchQuery.toLowerCase())
+  )
 
   const isAuthorizedUser = (session: unknown): session is Session => {
     return session !== null && typeof session === 'object' && 'user' in session
@@ -236,34 +243,44 @@ export default function MappingCPLCpmkPage() {
                   </p>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4 max-h-96 overflow-y-auto">
-                    {cpmks.map((cpmk) => (
-                      <div key={cpmk.id} className="flex items-start space-x-3 p-3 border rounded-lg">
-                        <Checkbox
-                          id={cpmk.id}
-                          checked={selectedCPMKs.includes(cpmk.id)}
-                          onCheckedChange={(checked) => handleCPMKToggle(cpmk.id, checked as boolean)}
-                          className="mt-1"
-                        />
-                        <div className="flex-1">
-                          <label htmlFor={cpmk.id} className="text-sm font-medium cursor-pointer">
-                            {cpmk.kode_cpmk}
-                          </label>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {cpmk.deskripsi}
-                          </p>
-                          <span className={`inline-block px-2 py-1 rounded-full text-xs mt-2 ${
-                            cpmk.kategori === 'pengetahuan'
-                              ? 'bg-blue-100 text-blue-800'
-                              : cpmk.kategori === 'keterampilan'
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-purple-100 text-purple-800'
-                          }`}>
-                            {cpmk.kategori?.toUpperCase() || 'N/A'}
-                          </span>
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-2">
+                      <Input
+                        placeholder="Cari CPMK berdasarkan kode atau deskripsi..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="max-w-sm"
+                      />
+                    </div>
+                    <div className="max-h-96 overflow-y-auto">
+                      {filteredCPMKs.map((cpmk) => (
+                        <div key={cpmk.id} className="flex items-start space-x-3 p-3 border rounded-lg mb-3">
+                          <Checkbox
+                            id={cpmk.id}
+                            checked={selectedCPMKs.includes(cpmk.id)}
+                            onCheckedChange={(checked) => handleCPMKToggle(cpmk.id, checked as boolean)}
+                            className="mt-1"
+                          />
+                          <div className="flex-1">
+                            <label htmlFor={cpmk.id} className="text-sm font-medium cursor-pointer">
+                              {cpmk.kode_cpmk}
+                            </label>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {cpmk.deskripsi}
+                            </p>
+                            <span className={`inline-block px-2 py-1 rounded-full text-xs mt-2 ${
+                              cpmk.kategori === 'pengetahuan'
+                                ? 'bg-blue-100 text-blue-800'
+                                : cpmk.kategori === 'keterampilan'
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-purple-100 text-purple-800'
+                            }`}>
+                              {cpmk.kategori?.toUpperCase() || 'N/A'}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                   <div className="flex justify-end space-x-2 mt-4">
                     <Button variant="outline" onClick={handleCancel}>

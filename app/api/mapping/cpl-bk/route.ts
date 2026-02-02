@@ -8,22 +8,12 @@ import { z } from 'zod'
 
 const createMappingSchema = z.object({
   cpl_id: z.string().min(1, 'CPL wajib dipilih'),
-  mata_kuliah_id: z.string().min(1, 'Mata Kuliah wajib dipilih'),
-  status: z.enum(['I', 'R', 'M', 'A'], {
-    message: 'Status harus I, R, M, atau A'
-  }),
-  semester_target: z.number().min(1).max(8).optional(),
-  bobot_status: z.number().min(0).max(100)
+  bahan_kajian_id: z.string().min(1, 'Bahan Kajian wajib dipilih')
 })
 
 const bulkCreateSchema = z.object({
   cpl_id: z.string().min(1, 'CPL wajib dipilih'),
-  mata_kuliah_mappings: z.array(z.object({
-    mata_kuliah_id: z.string().min(1, 'Mata Kuliah wajib dipilih'),
-    status: z.enum(['I', 'R', 'M', 'A']),
-    semester_target: z.number().min(1).max(8).nullable().optional(),
-    bobot_status: z.number().min(0).max(100)
-  }))
+  bahan_kajian_ids: z.array(z.string().min(1, 'Bahan Kajian wajib dipilih')).min(1, 'Minimal satu Bahan Kajian harus dipilih')
 })
 
 export async function GET(request: NextRequest) {
@@ -65,11 +55,11 @@ export async function GET(request: NextRequest) {
       whereClause.cpl_id = cplId
     }
 
-    const mappings = await prisma.cPL_MK_MAPPING.findMany({
+    const mappings = await prisma.cPL_BK_MAPPING.findMany({
       where: whereClause,
       include: {
         cpl: true,
-        mata_kuliah: true
+        bahan_kajian: true
       },
       orderBy: {
         created_at: 'desc'
@@ -78,7 +68,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(mappings)
   } catch (error) {
-    console.error('Error fetching CPL-MK mappings:', error)
+    console.error('Error fetching CPL-BK mappings:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -104,36 +94,31 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
 
     // Check if it's bulk create or single create
-    if (body.mata_kuliah_mappings) {
+    if (body.bahan_kajian_ids) {
       // Bulk create - replace all mappings for this CPL
-      const { cpl_id, mata_kuliah_mappings } = bulkCreateSchema.parse(body)
+      const { cpl_id, bahan_kajian_ids } = bulkCreateSchema.parse(body)
 
       // Remove duplicates from the input
-      const uniqueMappings = mata_kuliah_mappings.filter((mapping, index, self) =>
-        index === self.findIndex(m => m.mata_kuliah_id === mapping.mata_kuliah_id)
-      )
+      const uniqueBKIds = [...new Set(bahan_kajian_ids)]
 
       // Use transaction to delete existing mappings and create new ones
       const result = await prisma.$transaction(async (tx) => {
         // Delete all existing mappings for this CPL
-        await tx.cPL_MK_MAPPING.deleteMany({
+        await tx.cPL_BK_MAPPING.deleteMany({
           where: { cpl_id }
         })
 
         // Create new mappings
         const mappings = await Promise.all(
-          uniqueMappings.map((mapping: { mata_kuliah_id: string; status: 'I' | 'R' | 'M' | 'A'; semester_target?: number | null; bobot_status: number }) =>
-            tx.cPL_MK_MAPPING.create({
+          uniqueBKIds.map((bahan_kajian_id: string) =>
+            tx.cPL_BK_MAPPING.create({
               data: {
                 cpl_id,
-                mata_kuliah_id: mapping.mata_kuliah_id,
-                status: mapping.status,
-                semester_target: mapping.semester_target,
-                bobot_status: mapping.bobot_status
+                bahan_kajian_id
               },
               include: {
                 cpl: true,
-                mata_kuliah: true
+                bahan_kajian: true
               }
             })
           )
@@ -145,14 +130,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(result)
     } else {
       // Single create
-      const { cpl_id, mata_kuliah_id, status, semester_target, bobot_status } = createMappingSchema.parse(body)
+      const { cpl_id, bahan_kajian_id } = createMappingSchema.parse(body)
 
       // Check if mapping already exists
-      const existingMapping = await prisma.cPL_MK_MAPPING.findUnique({
+      const existingMapping = await prisma.cPL_BK_MAPPING.findUnique({
         where: {
-          cpl_id_mata_kuliah_id: {
+          cpl_id_bahan_kajian_id: {
             cpl_id,
-            mata_kuliah_id
+            bahan_kajian_id
           }
         }
       })
@@ -164,17 +149,14 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      const mapping = await prisma.cPL_MK_MAPPING.create({
+      const mapping = await prisma.cPL_BK_MAPPING.create({
         data: {
           cpl_id,
-          mata_kuliah_id,
-          status,
-          semester_target,
-          bobot_status
+          bahan_kajian_id
         },
         include: {
           cpl: true,
-          mata_kuliah: true
+          bahan_kajian: true
         }
       })
 
@@ -188,7 +170,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.error('Error creating CPL-MK mapping:', error)
+    console.error('Error creating CPL-BK mapping:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

@@ -54,7 +54,7 @@ export const authOptions = {
         // Extract roles and permissions
         const roles = user.roles.map((ur: { role: { name: string } }) => ur.role.name)
         const permissions = user.roles.flatMap((ur: { role: { permissions: Array<{ permission: { name: string } }> } }) =>
-          ur.role.permissions.map(rp => rp.permission.name)
+          ur.role.permissions.map((rp: { permission: { name: string } }) => rp.permission.name)
         )
 
         return {

@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
           select: { cpl_id: true }
         })
 
-        const currentCPLIds = currentMappings.map(m => m.cpl_id)
+        const currentCPLIds = currentMappings.map((m: { cpl_id: string }) => m.cpl_id)
 
         // Create new mappings for CPLs that don't exist yet
         const newCPLIds = cpl_ids.filter(cplId => !currentCPLIds.includes(cplId))

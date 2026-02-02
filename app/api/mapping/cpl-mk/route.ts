@@ -102,10 +102,10 @@ export async function POST(request: NextRequest) {
         select: { mata_kuliah_id: true }
       })
 
-      const existingMKIds = existingMappings.map(m => m.mata_kuliah_id)
+      const existingMKIds = existingMappings.map((m: { mata_kuliah_id: string }) => m.mata_kuliah_id)
 
       // Filter out Mata Kuliah that are already mapped
-      const newMappings = mata_kuliah_mappings.filter(mapping =>
+      const newMappings = mata_kuliah_mappings.filter((mapping: { mata_kuliah_id: string; status: 'I' | 'R' | 'M' | 'A'; semester_target?: number; bobot_status: number }) =>
         !existingMKIds.includes(mapping.mata_kuliah_id)
       )
 
@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
 
       // Create new mappings
       const mappings = await prisma.$transaction(
-        newMappings.map(mapping =>
+        newMappings.map((mapping: { mata_kuliah_id: string; status: 'I' | 'R' | 'M' | 'A'; semester_target?: number; bobot_status: number }) =>
           prisma.cPL_MK_MAPPING.create({
             data: {
               cpl_id,

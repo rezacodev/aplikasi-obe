@@ -22,7 +22,7 @@ export default function DashboardPage() {
     return <div>Loading...</div>
   }
 
-  if (!session) {
+  if (!session || !session.user) {
     return null
   }
 
@@ -61,8 +61,7 @@ export default function DashboardPage() {
               <CardTitle>Quick Actions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-              {(session.user as any)?.roles?.includes('admin') && (
+              {((session.user as Record<string, unknown>)?.roles as string[])?.includes('admin') && (
                 <Button
                   onClick={() => router.push("/admin")}
                   className="w-full justify-start"
@@ -72,8 +71,7 @@ export default function DashboardPage() {
                 </Button>
               )}
 
-              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-              {(session.user as any)?.roles?.includes('lecturer') && (
+              {((session.user as Record<string, unknown>)?.roles as string[])?.includes('lecturer') && (
                 <Button
                   onClick={() => router.push("/lecturer")}
                   className="w-full justify-start"
@@ -83,8 +81,7 @@ export default function DashboardPage() {
                 </Button>
               )}
 
-              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-              {(session.user as any)?.roles?.includes('student') && (
+              {((session.user as Record<string, unknown>)?.roles as string[])?.includes('student') && (
                 <Button
                   onClick={() => router.push("/student")}
                   className="w-full justify-start"
@@ -107,14 +104,12 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2">
-              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-              {((session.user as any)?.permissions || []).map((permission: string, index: number) => (
+              {((session.user as Record<string, unknown>)?.permissions as string[] || []).map((permission: string, index: number) => (
                 <Badge key={index} variant="secondary">
                   {permission}
                 </Badge>
               ))}
-              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-              {((session.user as any)?.permissions || []).length === 0 && (
+              {((session.user as Record<string, unknown>)?.permissions as string[] || []).length === 0 && (
                 <p className="text-gray-500 text-sm">No permissions assigned</p>
               )}
             </div>

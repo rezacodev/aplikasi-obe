@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
+import type { Session } from 'next-auth'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -68,9 +69,8 @@ export default function MataKuliahPage() {
     deskripsi: ''
   })
 
-  const isAuthorizedUser = (session: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
-    const userRoles = session?.user?.roles as string[] || []
-    return userRoles.includes('admin') || userRoles.includes('prodi')
+  const isAuthorizedUser = (session: unknown): session is Session => {
+    return session !== null && typeof session === 'object' && 'user' in session
   }
 
   useEffect(() => {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth/next'
+import { type Session } from 'next-auth'
 import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import { isAdmin } from '@/lib/auth'
 
@@ -32,8 +33,8 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions as any) // eslint-disable-line @typescript-eslint/no-explicit-any
-    if (!isAdmin(session as any)) { // eslint-disable-line @typescript-eslint/no-explicit-any
+    const session = (await getServerSession(authOptions)) as Session | null
+    if (!isAdmin(session)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -83,8 +84,8 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions as any) // eslint-disable-line @typescript-eslint/no-explicit-any
-    if (!isAdmin(session as any)) { // eslint-disable-line @typescript-eslint/no-explicit-any
+    const session = (await getServerSession(authOptions)) as Session | null
+    if (!isAdmin(session)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

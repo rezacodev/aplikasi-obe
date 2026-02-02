@@ -14,7 +14,7 @@ export default function LecturerPage() {
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login")
-    } else if (status === "authenticated" && !(session?.user as any)?.roles?.includes('lecturer')) { // eslint-disable-line @typescript-eslint/no-explicit-any
+    } else if (status === "authenticated" && !((session?.user as Record<string, unknown>)?.roles as string[])?.includes('lecturer')) {
       router.push("/dashboard")
     }
   }, [status, session, router])
@@ -23,7 +23,7 @@ export default function LecturerPage() {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>
   }
 
-  if (!session || !session.user || !(session.user as any).roles?.includes('lecturer')) { // eslint-disable-line @typescript-eslint/no-explicit-any
+  if (!session || !session.user || !((session.user as Record<string, unknown>).roles as string[])?.includes('lecturer')) {
     return null
   }
 

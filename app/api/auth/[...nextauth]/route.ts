@@ -4,9 +4,6 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter"
 import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const NextAuthFn = NextAuth as unknown as any
-
 export const authOptions = {
   adapter: PrismaAdapter(prisma),
   providers: [
@@ -75,8 +72,7 @@ export const authOptions = {
     strategy: "jwt" as const
   },
   callbacks: {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async jwt({ token, user }: { token: any; user?: any }) {
+    async jwt({ token, user }: { token: { roles?: string[]; permissions?: string[]; profile?: unknown; sub?: string }; user?: { roles?: string[]; permissions?: string[]; profile?: unknown } }) {
       try {
         if (user) {
           token.roles = user.roles
@@ -88,14 +84,13 @@ export const authOptions = {
       }
       return token
     },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async session({ session, token }: { session: any; token: any }) {
+    async session({ session, token }: { session: { user?: Record<string, unknown> }; token: Record<string, unknown> }) {
       try {
         if (token && session?.user) {
-          (session.user as any).id = (token as any).sub || null; // eslint-disable-line @typescript-eslint/no-explicit-any
-          (session.user as any).roles = (token as any).roles || []; // eslint-disable-line @typescript-eslint/no-explicit-any
-          (session.user as any).permissions = (token as any).permissions || []; // eslint-disable-line @typescript-eslint/no-explicit-any
-          (session.user as any).profile = (token as any).profile || null; // eslint-disable-line @typescript-eslint/no-explicit-any
+          session.user.id = (token.sub as string) || null
+          session.user.roles = (token.roles as string[]) || []
+          session.user.permissions = (token.permissions as string[]) || []
+          session.user.profile = (token.profile as unknown) || null
         }
       } catch (e) {
         console.error('[next-auth] session callback error', e);
@@ -108,6 +103,6 @@ export const authOptions = {
   }
 }
 
-const handler = NextAuthFn(authOptions)
+const handler = (NextAuth as unknown as any)(authOptions) // eslint-disable-line @typescript-eslint/no-explicit-any
 
 export { handler as GET, handler as POST }

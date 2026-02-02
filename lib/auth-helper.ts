@@ -1,10 +1,11 @@
 import { getServerSession } from 'next-auth/next'
+import { type Session } from 'next-auth'
 import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
 export async function getAuthenticatedUserWithProgramStudi() {
-  const session = await getServerSession(authOptions)
+  const session = (await getServerSession(authOptions)) as Session | null
   
   if (!session || !session.user) {
     return null
@@ -22,7 +23,7 @@ export async function getAuthenticatedUserWithProgramStudi() {
 export function requireAuth(roles?: string[]) {
   return async (handler: (...args: unknown[]) => Promise<NextResponse>) => {
     return async (...args: unknown[]) => {
-      const session = await getServerSession(authOptions)
+      const session = (await getServerSession(authOptions)) as Session | null
       
       if (!session || !session.user) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -43,7 +44,7 @@ export function requireAuth(roles?: string[]) {
 }
 
 export async function getProgramStudiIdFromUser(): Promise<string | null> {
-  const session = await getServerSession(authOptions)
+  const session = (await getServerSession(authOptions)) as Session | null
   
   if (!session || !session.user) {
     return null
